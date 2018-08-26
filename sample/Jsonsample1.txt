@@ -1,0 +1,43 @@
+
+[
+  {
+    "Manager": "Jazy",
+    "Emp": "Boo",
+    "TEAMDETAILS":[
+			{
+			"Name":"DA",
+			"status": "A",
+			"emps":[
+			     {"Name":"Varges",
+				   "DOB":"21"}
+			     ,{"Name" : "Matter",
+					"DOB":"21"}
+			     ]
+			},
+			{
+			"Name":"DAA",
+			"status": "A"
+			}
+			
+	],
+    "years":" 20",
+    "Status": "FTE",
+    "role": "Manager"
+  }
+  ,
+  {
+    "Manager": "Jazy",
+    "Emp": "Pauly",
+    "TEAMDETAILS":[
+			{
+			"Name":"DA",
+			"status": "A"
+}],
+			
+    "years": "20",
+    "Status": "FTE",
+    "role": "Tech lead"
+  }
+
+
+  ]
