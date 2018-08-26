@@ -8,7 +8,7 @@ This program convert a json data into a panda dataframe and writes to a csv file
     </tr>
   <tr><TD>
 <p align="left">
-  <img src="https://github.com/gajoseph/json2csv/blob/master/jasonexample1.jpg" width="700"/>
+   <a href = "https://github.com/gajoseph/json2csv/blob/master/sample/Jsonsample1.txt">JSON with nested arrays</a>
 </p>
   </TD>
 <TD>
@@ -17,8 +17,8 @@ This program convert a json data into a panda dataframe and writes to a csv file
 </p>
 </TD>
   </TR>
-  <tr><TD> <a href = "https://github.com/gajoseph/json2csv/blob/master/sample/Jsonsample1.txt">JSON file</a> </TD>
-    <TD> Output file  </TD>
+  <tr><TD> <a href = "https://github.com/gajoseph/json2csv/blob/master/sample/Jsonsample2.txt">JSON data with nested array </a> </TD>
+    <TD><img src="https://github.com/gajoseph/json2csv/blob/master/sample/jsonsample2.jpg" width="700"/> </TD>
     </tr>
  
  <Table>
