@@ -6,10 +6,13 @@ import traceback
 from pandas.io.json import json_normalize
 from pandas.api.types import is_string_dtype
 import os
+import datetime
 
 bigDf = pd.DataFrame({'A' : [1]});
-with  open("c:/users/tgaj2/aws/Sample_snapquote_response.txt") as f:
-#with  open("c:/users/tgaj2/aws/qwe.txt") as f:
+fileDir = os.path.dirname(__file__)
+filename = os.path.join(fileDir, '/PycharmProjects/jsonrows/json2csv/sample/Jsonsample1.txt')
+#with  open("c:/users/tgaj2/aws/Sample_snapquote_response.txt") as f:
+with  open(filename) as f:
     json_data = json.load(f )
     #json_data = json.loads(json.dumps(json_data["payLoad"] ))
     #json_data = pd.read_json(f)
@@ -23,21 +26,26 @@ def drop_dups(bigDf2):
         columnlist_2_add.remove('1PK')
     return bigDf2.drop_duplicates(subset=columnlist_2_add )
 
+def dropDataframeCol(df, colname):
+    if colname in df.columns:
+        df.drop([colname], axis=1, inplace=True)
+
 def merge_and_remove_columns(bigDf2, child):
+#    if bigDf2['0FK'']==bigDf2['0FK'']
     bigDf2 = pd.merge(left=bigDf2, right=child, left_on='1PK', right_on='0FK', how='inner')
     bigDf2.rename(columns={'0FK_x': '0FK', '0FK_y': '1PK'}, inplace=True)  ### was PK_y
+    if not '1PK' in bigDf2.columns:
+        bigDf2.rename(columns={'1PK_x': '1PK'}, inplace=True)  ### was PK_y
 
-    if '1PK_x' in bigDf2.columns:
-        bigDf2.drop(['1PK_x'], axis=1, inplace=True)
+    dropDataframeCol(bigDf2, '1PK_x')
+    dropDataframeCol(bigDf2, '1PK_y')
 
-    if '1PK_y' in bigDf2.columns:
-        bigDf2.drop(['1PK_y'], axis=1, inplace=True)
     return bigDf2;
-###"dddd"
 
 
 
 
+###################################################################################################
 def pad_lefSideparent(bigDfCp, bigDf2):
     ### copy columns from bigf2 from PK to the end
     ### then
@@ -51,8 +59,21 @@ def pad_lefSideparent(bigDfCp, bigDf2):
     bigPar_padChldCols = pd.concat([bigDfCp, pd.DataFrame(columns=columnlist_2_add)], axis=0)
 
     return bigPar_padChldCols
+####################################################################################################
+def arrayNameAndRenameColumns(df):
+    # if there are 2 array to be mereged this can be used
+    #
+    #
+    colname = df.columns[df.columns.get_loc("1PK") + 1]
+    new_colname = ""
+    for col in df.columns:
+        if (col != colname):
+            if col.find(colname)>=0:
+                new_colname=                 col.replace(colname,"")
+                df.rename(columns={col: new_colname}, inplace=True)  ### was PK_y
 
 
+#####################################################################################################
 def assignVal(bigDf1, col, value ):
     if (bigDf1.empty):
         bigDf1 = pd.DataFrame({col: [value]})
@@ -67,53 +88,67 @@ def build_rows(bigDf, child, run_leftpad):
     #bigDf2 = bigDf2.drop_duplicates(subset=['0FK', '1PK'])  ### remove the dups baasedon the columns
     bigDf2 = drop_dups(bigDf )
 
-    if  ( (child['1PK'].dtype==int) or (child['1PK'].dtype==np.int64 ) ) and  (list(child['1PK'].unique())[-1] >= 1): ## handling array
+    if  ( ( (child['1PK'].dtype==int) or (child['1PK'].dtype==np.int64 ) or (type(child['1PK'].unique()[-1])==int ) ) and  (list(child['1PK'].unique())[-1] >= 1)): ## handling array
         bigDf2 = bigDf2.iloc[:, 0:2].copy()
-    bigDf2 = merge_and_remove_columns(bigDf2,
-                                      child)  ## merge the data frames and remove colums comun on both side and have onl
+    #### merging array at the same level
+
+    if (child['0FK'].dtype == int or child['0FK'].dtype == np.int64) \
+            and (bigDf['1PK'].dtype == int or bigDf['1PK'].dtype == np.int64) \
+            and ((bigDf['1PK'].unique()[-1]) == (child['0FK'].unique()[-1]))\
+            and (bigDf.shape[0] > 1):  ## handling array
+        bigDf2 = bigDf2.iloc[:, 0:bigDf2.columns.get_loc("1PK")+1].copy()
+    bigDf2 = merge_and_remove_columns(bigDf2,child)  ## merge the data frames and remove colums comun on both side and have onl
+
+    ### 1st array element
+    if (((child['1PK'].dtype == int) or (child['1PK'].dtype == np.int64) or (
+        type(child['1PK'].unique()[-1]) == int)) and (list(child['1PK'].unique())[-1] ==0)):  ## handling array
+        return bigDf2
+    ### other array element. this is to avoid mutiple concat  for debug remove tis
+    if (((child['1PK'].dtype == int) or (child['1PK'].dtype == np.int64) or (
+                type(child['1PK'].unique()[-1]) == int)) and (list(child['1PK'].unique())[-1] > 0)):  ## handling array
+        return pd.concat([bigDfCp, bigDf2], axis=0)
+    ### forgot???
+    if (((child['1PK'].dtype == int) or (child['1PK'].dtype == np.int64) or (
+        type(child['1PK'].unique()[-1]) == int)) ):  ## handling array
+        return bigDf2
+    if (child['0FK'].dtype == int  or child['0FK'].dtype == np.int64 ) \
+            and  (bigDf['1PK'].dtype == int or bigDf['1PK'].dtype == np.int64 ) \
+            and ((bigDf['1PK'].unique()[-1]) == (child['0FK'].unique()[-1]) )  :  ## handling array
+        if (bigDf.shape[0] > 1):  ## handling merging of 2 sibling arrays
+            #find the array name and rename col names
+            #bigDfCp = arrayNameAndRenameColumns(bigDfCp)
+            #bigDf2 = arrayNameAndRenameColumns(bigDf2)
+            return pd.concat([bigDfCp, bigDf2], axis=0)
+        return bigDf2
+
+
+
     if (run_leftpad==1):
         bigDfCp = pad_lefSideparent(bigDfCp, bigDf2)
-    con_bigDf = pd.concat([bigDfCp, bigDf2], axis=0)
 
+#0n 08/21 list(bigDfCp['0FK'].unique())[-1]
+    if '0FK' in bigDfCp.columns:
+       # if ( bigDfCp.columns in bigDf2.columns):
+       #     print ("Same  <><><<><><<<><<><<<><><<<<<<<<<<<><><><><><<<><<<<<<><><><><><<><<><<><><<><<><><<><><><<><<><><><><><><<><<><<><<")
+        if  (list(bigDfCp['0FK'].unique())[-1]==list(bigDf2['0FK'].unique())[-1] and list(bigDfCp['1PK'].unique())[-1]==list(bigDf2['1PK'].unique())[-1]):
+            con_bigDf = pd.concat([bigDfCp, bigDf2], axis=0)
+
+        else:
+            con_bigDf = merge_and_remove_columns(bigDfCp, bigDf2)
+    else:
+        con_bigDf = bigDf2
     return con_bigDf
 
+###########################################################################################
 def build_leftSideParent(bigDf, child):
     if (child.shape[1] ==2 ): # if there are only 2 column -- 0FK and 1PK
         return bigDf
-    return build_rows(bigDf, child, 1)
-
-#    bigDf2 = merge_and_remove_columns(bigDf2, child)  ## merge the data frames and remove colums comun on both side and have onl
-    bigDfCp = bigDf.copy()
-
-    bigDfCp= pad_lefSideparent(bigDfCp, bigDf2)
-
-    con_bigDf = pd.concat([bigDfCp, bigDf2], axis=0)
-    return con_bigDf
+    return build_rows(bigDf, child, 0)
+###################################################################################################
 
 
 def addRowsforArrays(bigDf, child ):
-    return build_rows(bigDf, child,0)
-#    bigDfCp = bigDf.copy()  ### need to detemine from where to copy
-#    bigDf2 = bigDfCp.copy()  # Make another copy
-
-    #bigDf2 = bigDf2.drop_duplicates(subset=list(bigDf2.columns[0:bigDf2.columns.get_loc('1PK') + 1])) ### remove the dups baased on the columns
-#    bigDf2 = bigDf2.drop_duplicates(        subset=['0FK', '1PK'])  ### remove the dups baased on the columns
-
-#    if (list(child['1PK'].unique())[-1] >= 1):
-        #bigDf2 = bigDf2.iloc[:, 0:bigDf2.columns.get_loc('1PK') + 1].copy()
-#        bigDf2 = bigDf2.iloc[:, 0:2].copy()
-
-#    bigDf2 = merge_and_remove_columns(bigDf2, child ) ## merge the data frames and remove colums comun on both side and have onl
-
-    bigDfCp = bigDf.copy()
-
-    ### merge these 2
-   # frames = [bigDfCp, bigDf2]
-    con_bigDf = pd.concat([bigDfCp, bigDf2], axis = 0)
-
-#    con_bigDf['1PK'] = list(child['1PK'].unique())[-1]
-
-    return   con_bigDf
+    return build_rows(bigDf, child,1)
 
 
 def merge_new(bigDf, child, parentcolumn , colpos):
@@ -121,6 +156,11 @@ def merge_new(bigDf, child, parentcolumn , colpos):
         return bigDf
     if 'A' in bigDf.columns:
         return child
+    print("==================== bigDf========================")
+    print (bigDf)
+    print("==================== Child ========================")
+    print(child)
+
     # pd.merge(left=surveySub,right=speciesSub
     if ((child['1PK'].dtype==int) or child['1PK'].dtype==np.int64 ) and ( (bigDf['1PK'].dtype==int) or bigDf['1PK'].dtype==np.int64): #if there rows are same need to mergeg
         ## create a new rows
@@ -175,7 +215,10 @@ def flatten_data(data, i, column_name, parentcolumn, colpos, bigDf1 ):
                                   ,pd.DataFrame({'1PK' : index, '0FK' : [column]} ))  # pass the
                 #here we need to slice and dice to get  the correct rows
 
+
                 bigDf1 = merge_new(bigDf1, dd, parentcolumn, colpos)
+                print("==================== new ========================")
+                print(bigDf1)
 
                 icolcnt = icolcnt + 1
             else:
@@ -205,10 +248,12 @@ def flatten_data(data, i, column_name, parentcolumn, colpos, bigDf1 ):
                 else:
                     #za = column_name+str(index)
                     #####za = index
-                    if not ((type(parentcolumn)==int) or type(parentcolumn)==np.int64):
-                        FK_NAME = str(parentcolumn) + str(index)
-                    else:
-                        FK_NAME = str(column_name) + "_"+  str(index)
+                    if (column_name != ""):
+                        ## add a new column 08/30 if there is a need to merge 2 array collections
+                        #bigDf1[column_name] =column_name
+                        FK_NAME = str(index)
+
+                    FK_NAME = str(column_name) + "_"+  str(index)
                     assignVal(bigDf1, FK_NAME, row[column])
 
             #icolcnt = icolcnt + 1
@@ -227,8 +272,13 @@ index="ALL"
 bigDf = pd.DataFrame({'1PK' : [index]});
 #b = flatten_data({index: json_data}, 0)
 column_name = ""
+start = datetime.datetime.now()
 
 bigDf = flatten_data(pd.DataFrame({index: json.loads(json.dumps(json_data))}), 0, "", "", 0,bigDf )
+
+end = datetime.datetime.now()
+
+
 
 print ("dfdd",bigDf )
 a = bigDf
@@ -236,7 +286,10 @@ a = bigDf
 clear = lambda: os.system('cls') #on Windows System
 clear()
 print("\033[H\033[J")
-a.to_csv('c:/users/tgaj2/aws/out.csv')
+a.to_csv('c:/users/tgaj2/aws/out.csv')  # read from paramter file
+print (" start:" ,  start ,  " end " ,   end )
+exit()
+
 
 for index, row in a.iterrows():
     for column in a.columns:
