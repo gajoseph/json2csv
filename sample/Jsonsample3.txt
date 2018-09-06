@@ -1,0 +1,13 @@
+{"transportCharges":{
+"origin":{
+"centerCode":"CLAX003",
+"cost":670.0
+
+},
+"destination":{
+"centerCode":"CPHX002",
+"cost":840.0
+}
+}
+
+}

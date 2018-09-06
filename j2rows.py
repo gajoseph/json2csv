@@ -10,8 +10,8 @@ import datetime
 
 bigDf = pd.DataFrame({'A' : [1]});
 fileDir = os.path.dirname(__file__)
-filename = os.path.join(fileDir, '/PycharmProjects/jsonrows/json2csv/sample/Jsonsample1.txt')
-#with  open("c:/users/tgaj2/aws/Sample_snapquote_response.txt") as f:
+filename = os.path.join(fileDir, '/PycharmProjects/jsonrows/json2csv/sample/JsonsampleALL.txt')
+#with  open("c:/users/tgaj2/aws/qwe.txt") as f:
 with  open(filename) as f:
     json_data = json.load(f )
     #json_data = json.loads(json.dumps(json_data["payLoad"] ))
@@ -32,6 +32,13 @@ def dropDataframeCol(df, colname):
 
 def merge_and_remove_columns(bigDf2, child):
 #    if bigDf2['0FK'']==bigDf2['0FK'']
+    ## GEt list of columns common in both; rename them with pk values aka parent name
+    com_cols = bigDf2.columns & child.columns
+    for col in com_cols:
+        if col not in ('0FK', '1PK'):
+            bigDf2.rename(columns={col: bigDf2['1PK'].unique()[-1] + col}, inplace=True)    ### rename column name to {PK_colm}_colname
+            child.rename(columns={col: child['1PK'].unique()[-1] + col}, inplace=True)      ### rename column name to {PK_colm}_colname
+
     bigDf2 = pd.merge(left=bigDf2, right=child, left_on='1PK', right_on='0FK', how='inner')
     bigDf2.rename(columns={'0FK_x': '0FK', '0FK_y': '1PK'}, inplace=True)  ### was PK_y
     if not '1PK' in bigDf2.columns:
@@ -118,7 +125,8 @@ def build_rows(bigDf, child, run_leftpad):
             #find the array name and rename col names
             #bigDfCp = arrayNameAndRenameColumns(bigDfCp)
             #bigDf2 = arrayNameAndRenameColumns(bigDf2)
-            return pd.concat([bigDfCp, bigDf2], axis=0)
+            return pd.concat([bigDfCp, bigDf2], axis=0) ## for user case 1
+
         return bigDf2
 
 
@@ -130,11 +138,17 @@ def build_rows(bigDf, child, run_leftpad):
     if '0FK' in bigDfCp.columns:
        # if ( bigDfCp.columns in bigDf2.columns):
        #     print ("Same  <><><<><><<<><<><<<><><<<<<<<<<<<><><><><><<<><<<<<<><><><><><<><<><<><><<><<><><<><><><<><<><><><><><><<><<><<><<")
+       ### This for concating when we process withina a parent aan array item and then later has a simple item
         if  (list(bigDfCp['0FK'].unique())[-1]==list(bigDf2['0FK'].unique())[-1] and list(bigDfCp['1PK'].unique())[-1]==list(bigDf2['1PK'].unique())[-1]):
-            con_bigDf = pd.concat([bigDfCp, bigDf2], axis=0)
+            ### check if we actually removed some dup rows b/c of array collections; and another simple types
+            if (bigDf.shape[0] != bigDf2.shape[0]):
+                con_bigDf = pd.concat([bigDfCp, bigDf2], axis=0)
+            else:
+                con_bigDf = bigDf2
 
         else:
             con_bigDf = merge_and_remove_columns(bigDfCp, bigDf2)
+            return bigDf2
     else:
         con_bigDf = bigDf2
     return con_bigDf

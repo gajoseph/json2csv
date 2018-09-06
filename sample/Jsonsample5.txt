@@ -1,0 +1,47 @@
+{
+"appName":"snap-quote-service",
+"resource":"/estimate",
+"generatedAt":"2018-07-06T00:27:26.559Z",
+
+
+"details":[
+  {
+    "Manager": "Caleb ",
+    "Reports": [{"emp":"Babu Chellappa",
+				 "First": "Babu",
+						"Teams":[
+								{
+								"Name":"DA",
+								"Status": "A",
+								"Members":[
+									{"Name": "George", "DOB":21				},
+									{"Name": "San", "DOB":11				}
+								]
+								},
+								{
+								"Name":"DAA",
+								"Status": "A"
+								}
+								
+						],
+						"years":" 20",
+						"Type": "FTE",
+						"role": "Manager"
+				}		,
+				{"emp":"Paul Wilson",
+				 "First": "Paul",
+				"Teams":[
+						{
+							"Name":"DA",
+							"Status": "A"
+						}
+				],
+				"years":" 20",
+				"Type": "FTE",
+				"role": "Tech Lead"
+			}		
+				
+	]
+  }
+  ]
+  }

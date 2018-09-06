@@ -12,12 +12,10 @@
 			{
 			"Name":"DA",
 			"status": "A",
-			"emps":[
-			     {"Name":"Varges",
-				   "DOB":"21"}
-			     ,{"Name" : "Matter",
-					"DOB":"21"}
-			     ]
+			"Reports":[
+				{"Name": "George", "DOB":21				},
+				{"Name": "San", "DOB":11				}
+			]
 			},
 			{
 			"Name":"DAA",

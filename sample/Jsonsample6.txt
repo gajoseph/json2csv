@@ -1,0 +1,22 @@
+[
+  {
+    "Manager": "Caleb",
+    "emp": "babu",
+    "team": "Da"
+  },
+  {
+    "Manager": "Caleb",
+    "emp": "paul",
+    "team": "Da"
+  },
+  {
+    "Manager": "babu",
+    "emp": "George",
+    "team": "Da"
+  },
+  {
+    "Manager": "babu",
+    "emp": "Karuna",
+    "team": "Da"
+  }
+]
