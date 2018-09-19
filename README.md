@@ -36,7 +36,7 @@ This program convert a json data into a panda dataframe and writes to a csv file
 
 
    <tr><TD> <a href = "https://github.com/gajoseph/json2csv/blob/master/sample/Jsonsample6.txt">JSON data with mutiple simple nested types </a> </TD>
-    <TD><img src="https://github.com/gajoseph/json2csv/blob/master/sample/jsonsample6.jpg" width="700"/> </TD>
+    <TD><img src="https://github.com/gajoseph/json2csv/blob/master/sample/jsonsample6.jpg" /> </TD>
     </tr>
    
     
