@@ -16,7 +16,7 @@
   },
   {
     "Manager": "babu",
-    "emp": "Karuna",
+    "emp": "Gulhan",
     "team": "Da"
   }
 ]
