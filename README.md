@@ -29,7 +29,7 @@ This program convert a json data into a panda dataframe and writes to a csv file
     <TD><img src="https://github.com/gajoseph/json2csv/blob/master/sample/jsonsample4.jpg" width="700"/> </TD>
     </tr>
   <tr><TD> <a href = "https://github.com/gajoseph/json2csv/blob/master/sample/Jsonsample5.txt">JSON data with nested array </a> </TD>
-    <TD><img src="https://github.com/gajoseph/json2csv/blob/master/sample/jsonsample5.jpg" width="700"/> </TD>
+    <TD><img src="https://github.com/gajoseph/json2csv/blob/master/sample/jsonsample5.jpg" /> </TD>
     </tr>
  
  <Table>
