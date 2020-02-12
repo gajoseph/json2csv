@@ -7,6 +7,13 @@ from pandas.io.json import json_normalize
 from pandas.api.types import is_string_dtype
 import os
 import datetime
+import inspect
+import numpy
+
+from inspect import currentframe, getframeinfo
+
+cf = currentframe()
+filename = getframeinfo(cf).filename
 
 bigDf = pd.DataFrame({'A' : [1]});
 fileDir = os.path.dirname(__file__)
@@ -32,15 +39,31 @@ def dropDataframeCol(df, colname):
 
 def merge_and_remove_columns(bigDf2, child):
 #    if bigDf2['0FK'']==bigDf2['0FK'']
-    ## GEt list of columns common in both; rename them with pk values aka parent name
+    ## GEt list of columns common!!! in both; rename them with pk values aka parent name
     com_cols = bigDf2.columns & child.columns
-    for col in com_cols:
-        if col not in ('0FK', '1PK'):
-            bigDf2.rename(columns={col: bigDf2['1PK'].unique()[-1] + col}, inplace=True)    ### rename column name to {PK_colm}_colname
-            child.rename(columns={col: child['1PK'].unique()[-1] + col}, inplace=True)      ### rename column name to {PK_colm}_colname
+    print(bigDf2.columns, " <><><>, ", child.columns)
+    print(bigDf2)
+    print(child, com_cols)
+    # for col in com_cols:
+    #     print ("Col", col)
+    #     if col not in ('0FK', '1PK'):
+    #         print("Renaming bigDf2  ", col, " To ", str(bigDf2['1PK'].unique()[-1]) + col)
+    #         bigDf2.rename(columns={col: str(bigDf2['1PK'].unique()[-1]) + col}, inplace=True)    ### rename column name to {PK_colu,name}_colname
+    #         print("Renaming " , col , " To " , str(child['1PK'].unique()[-1])+"_" + col)
+    #         child.rename(columns={col: str(child['1PK'].unique()[-1]) +"_" + col}, inplace=True)      ### rename column name to {PK_colm}_colname
+    #
+
+    print(bigDf2.columns, " AFTER <><><>, ", child.columns)
+
+
+    print(bigDf2)
+    print(child)
 
     bigDf2 = pd.merge(left=bigDf2, right=child, left_on='1PK', right_on='0FK', how='inner')
+    print(bigDf2, "SDASSSS")
     bigDf2.rename(columns={'0FK_x': '0FK', '0FK_y': '1PK'}, inplace=True)  ### was PK_y
+
+
     if not '1PK' in bigDf2.columns:
         bigDf2.rename(columns={'1PK_x': '1PK'}, inplace=True)  ### was PK_y
 
@@ -82,6 +105,8 @@ def arrayNameAndRenameColumns(df):
 
 #####################################################################################################
 def assignVal(bigDf1, col, value ):
+    printMoreinfo()
+    print ("bigDf1, col, value ", bigDf1, "\n : " , col, " : ", value , " <<")
     if (bigDf1.empty):
         bigDf1 = pd.DataFrame({col: [value]})
     else:
@@ -96,7 +121,8 @@ def build_rows(bigDf, child, run_leftpad):
     bigDf2 = drop_dups(bigDf )
 
     if  ( ( (child['1PK'].dtype==int) or (child['1PK'].dtype==np.int64 ) or (type(child['1PK'].unique()[-1])==int ) ) and  (list(child['1PK'].unique())[-1] >= 1)): ## handling array
-        bigDf2 = bigDf2.iloc[:, 0:2].copy()
+        #bigDf2 = bigDf2.iloc[:, 0:2].copy()
+        bigDf2 = bigDf2.iloc[:, 0:bigDf2.columns.get_loc("1PK") + 1].copy()
     #### merging array at the same level
 
     if (child['0FK'].dtype == int or child['0FK'].dtype == np.int64) \
@@ -113,7 +139,7 @@ def build_rows(bigDf, child, run_leftpad):
     ### other array element. this is to avoid mutiple concat  for debug remove tis
     if (((child['1PK'].dtype == int) or (child['1PK'].dtype == np.int64) or (
                 type(child['1PK'].unique()[-1]) == int)) and (list(child['1PK'].unique())[-1] > 0)):  ## handling array
-        return pd.concat([bigDfCp, bigDf2], axis=0)
+        return pd.concat([bigDfCp, bigDf2], axis=0, sort=False )
     ### forgot???
     if (((child['1PK'].dtype == int) or (child['1PK'].dtype == np.int64) or (
         type(child['1PK'].unique()[-1]) == int)) ):  ## handling array
@@ -164,17 +190,30 @@ def build_leftSideParent(bigDf, child):
 def addRowsforArrays(bigDf, child ):
     return build_rows(bigDf, child,1)
 
+def printMoreinfo():
+    nd = numpy.array(inspect.stack())
+    print("sssss", nd[:, [2, 3]])  ### printing the 2nd and 3rd elements of mutli-dime array
+    return
 
 def merge_new(bigDf, child, parentcolumn , colpos):
     if (child.empty):
         return bigDf
     if 'A' in bigDf.columns:
         return child
-    print("==================== bigDf========================")
+    print("==================== bigDf========================" )
     print (bigDf)
-    print("==================== Child ========================")
+    print("==================== Child ========================"  )
     print(child)
+    printMoreinfo()
 
+    if (type(parentcolumn)==str):
+        for col in child.columns:
+            if col not in ('0FK', '1PK'):
+                child.rename(columns={col: str(parentcolumn) + "_" + col}, inplace=True)
+
+
+
+    print ("child.columns ", child.columns, " parentcolumn ", parentcolumn )
     # pd.merge(left=surveySub,right=speciesSub
     if ((child['1PK'].dtype==int) or child['1PK'].dtype==np.int64 ) and ( (bigDf['1PK'].dtype==int) or bigDf['1PK'].dtype==np.int64): #if there rows are same need to mergeg
         ## create a new rows
@@ -194,13 +233,32 @@ def merge_new(bigDf, child, parentcolumn , colpos):
 
     return new_bigDf
 
+def FK_NAMEWhenColumnisIntAndcolumn_nameisEmpty(column,column_name, index ):
+    print(" else type(column) : is ", type(column), ' Colun: ', column, " FK_NAME ")
+
+    FK_NAME= ""
+    if (type(column) == np.int):  # or type(index)==np.int64:
+        if (column_name == ""):
+            FK_NAME = str(index)
+        else:
+            FK_NAME = str(column_name)
+    else:
+        if (type(index) != np.int64):
+            if (column_name == ""):
+                FK_NAME = str(column) + "_" + str(index)
+            else:
+                FK_NAME = str(column_name)
+    print("type(column)", type(column), "type(index)", type(index), "  FK_NAME ", FK_NAME, " type(column)==np.int64",
+          type(column) == np.int64)
+
+    return FK_NAME
 
 
 
 def flatten_data(data, i, column_name, parentcolumn, colpos, bigDf1 ):
     b = "";
     a= data
-    print('Entering flatten_data ', i, type(a),"a=" ,a.columns)
+    print('Entering flatten_data ', i, type(a),"a=" ,a, " column_name  :", column_name)
     icnt=0
     icolcnt=0
     FK_NAME= column_name
@@ -210,15 +268,17 @@ def flatten_data(data, i, column_name, parentcolumn, colpos, bigDf1 ):
     icolcnt= colpos
 
     for index, row in a.iterrows():
+        print ("Index: ", index , " Row: ", row )
         for column in a.columns:
             coltype = False
             if type(row[column]) == dict or type(row[column]) == list:
-                print (" CHEKED D D D D ", "column =", column , list(a)[a.columns.get_loc(column)],"\n" ,row, "ddddd", index, " \n column type ", type(column)                      , "\n column_name :",column_name                       , "\n level::", i )
+                print (" CHEKED D D D D ", "column =", column , list(a)[a.columns.get_loc(column)],"\n row:>>" ,row, "<< index ", index, " \n column type "
+                       , type(column)                      , "\n column_name :",column_name                       , "\n level::", i , " ParentColumn", parentcolumn )
 
                 if (type(column)==int) or type(index)==np.int64:
                     FK_NAME = str(column_name)
                 else:
-                    FK_NAME = str(index)
+                    FK_NAME = str(column_name) #+ "_"  + str(index)
 
                 if (bigDf1.empty):
                     dd = flatten_data(pd.DataFrame({index: json.loads(json.dumps(row[column]))}), icnt, FK_NAME,
@@ -229,24 +289,24 @@ def flatten_data(data, i, column_name, parentcolumn, colpos, bigDf1 ):
                                   ,pd.DataFrame({'1PK' : index, '0FK' : [column]} ))  # pass the
                 #here we need to slice and dice to get  the correct rows
 
+                print (column,  " ASSSS ", dd.columns)
 
-                bigDf1 = merge_new(bigDf1, dd, parentcolumn, colpos)
+                bigDf1 = merge_new(bigDf1, dd, column, colpos)
                 print("==================== new ========================")
                 print(bigDf1)
 
                 icolcnt = icolcnt + 1
+
             else:
-                if (type(column)==int) or type(index)==np.int64:
-                    FK_NAME = str(column_name)
-                else:
-                    FK_NAME = str(column_name) + "_" + str(index)
+
+                FK_NAME = FK_NAMEWhenColumnisIntAndcolumn_nameisEmpty(column, column_name, index)
 
                 if type(index)==np.int64 :#or type(column)==np.int64:
                     if (index==0): ### checking for array
                         if (index == 0):
                             FK_NAME =  str(column_name)
                         if (column == 0):
-                            FK_NAME = str(column_name) + "_"+  index  ## add colunm_name
+                            FK_NAME = str(column_name) #+ "_"+  index  ## add colunm_name
 
                         assignVal(bigDf1, FK_NAME, row[column])
 
@@ -255,19 +315,14 @@ def flatten_data(data, i, column_name, parentcolumn, colpos, bigDf1 ):
 
                     else:
                         bigDf11 = pd.DataFrame(bigDf1[-1:] ) ## copy the last row
+                        print ("bigDf11 ::", bigDf11 )
                   #      print("get_loc::", column, " Column_name = ", column_name,  index , "\n list of column bigDf:: " , bigDf.columns)
                         bigDf11.iloc[-1, bigDf1.columns.get_loc(FK_NAME)] = row[column] #### assign the new value to last column
                         bigDf1 = bigDf1.append(bigDf11)
 
                 else:
-                    #za = column_name+str(index)
-                    #####za = index
-                    if (column_name != ""):
-                        ## add a new column 08/30 if there is a need to merge 2 array collections
-                        #bigDf1[column_name] =column_name
-                        FK_NAME = str(index)
+                    FK_NAME = FK_NAMEWhenColumnisIntAndcolumn_nameisEmpty(column, column_name, index)
 
-                    FK_NAME = str(column_name) + "_"+  str(index)
                     assignVal(bigDf1, FK_NAME, row[column])
 
             #icolcnt = icolcnt + 1
@@ -309,5 +364,4 @@ for index, row in a.iterrows():
     for column in a.columns:
         print(column ," : ", row[column] )
     print ("=========================================================================")
-
 
